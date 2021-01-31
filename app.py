@@ -5,27 +5,29 @@ from flask_jwt import JWT, jwt_required, current_identity
 from security import authenticate, identity
 
 app = Flask(__name__)
-app.config['PROPAGATE_EXCEPTIONS'] = True # To allow flask propagating exception even if debug is set to false on app
+app.config['PROPAGATE_EXCEPTIONS'] = True
 app.secret_key = 'secret_key'
 api = Api(app)
 
 jwt = JWT(app, authenticate, identity)
 
 items = [
-    { 'name': "Cards", 'price': 19.99 }
+    {'name': "Cards", 'price': 19.99}
 ]
+
 
 @app.route('/health')
 def sanity_Check():
     return "OK"
 
+
 class Item(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('price',
-        type=float,
-        required=True,
-        help="This field cannot be left blank!"
-    )
+                        type=float,
+                        required=True,
+                        help="This field cannot be left blank!"
+                        )
 
     @jwt_required()
     def get(self, name):
@@ -50,7 +52,7 @@ class Item(Resource):
     @jwt_required()
     def put(self, name):
         data = Item.parser.parse_args()
-        # Once again, print something not in the args to verify everything works
+
         item = next(filter(lambda x: x['name'] == name, items), None)
         if item is None:
             item = {'name': name, 'price': data['price']}
@@ -59,12 +61,14 @@ class Item(Resource):
             item.update(data)
         return item
 
+
 class ItemList(Resource):
     def get(self):
         return {'items': items}
+
 
 api.add_resource(Item, '/item/<string:name>')
 api.add_resource(ItemList, '/items')
 
 if __name__ == '__main__':
-    app.run(debug=True)  # important to mention debug=True
+    app.run(debug=True)
